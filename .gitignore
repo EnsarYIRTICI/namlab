@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.next/
+.env
+*.log
+next-env.d.ts
+tsconfig.tsbuildinfo
+web/public/zxing_reader.wasm

@@ -1,0 +1,123 @@
+import express, { type NextFunction, type Request, type Response } from "express";
+import { COOKIE_NAME, parseCookies, validatePassword } from "./auth";
+import { ayarlariOku } from "./ayarlar";
+import { kaydet } from "./islemKaydi";
+import type { Deps } from "./deps";
+import { sayimlarRoutes } from "./routes/sayimlar";
+import { urunlerRoutes } from "./routes/urunler";
+import { publicRoutes } from "./routes/session";
+import { yonetimRoutes } from "./routes/yonetim";
+
+export function buildApp(d: Deps) {
+  const app = express();
+  app.disable("x-powered-by");
+  // Host nginx arkasında: gerçek istemci IP'si ve HTTPS bilgisi (Secure çerez) için ilk proxy'ye güven.
+  if (d.config.TRUST_PROXY) app.set("trust proxy", 1);
+
+  app.use((_req, res, next) => {
+    res.set({
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Referrer-Policy": "same-origin",
+    });
+    next();
+  });
+
+  // CSRF savunması: çerez SameSite=Strict + durum değiştiren isteklerde Origin kontrolü
+  const allowedOrigin = d.config.APP_ORIGIN ? new URL(d.config.APP_ORIGIN).origin : null;
+  app.use((req, res, next) => {
+    if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") return next();
+    const origin = req.get("origin");
+    if (!origin) return next(); // tarayıcı dışı istemciler (curl vb.) Origin göndermez
+    let ok = false;
+    try {
+      const o = new URL(origin);
+      ok = allowedOrigin ? o.origin === allowedOrigin : o.host === req.host;
+    } catch {
+      ok = false;
+    }
+    if (!ok) {
+      res.status(403).json({ error: "Geçersiz istek kaynağı." });
+      return;
+    }
+    next();
+  });
+
+  const api = express.Router();
+  api.use(publicRoutes(d));
+
+  // Buradan sonrası oturum gerektirir
+  api.use(async (req: Request, res: Response, next: NextFunction) => {
+    const session = await d.auth.getSession(parseCookies(req.headers.cookie)[COOKIE_NAME]);
+    if (!session) {
+      res.status(401).json({ error: "Oturum gerekli." });
+      return;
+    }
+    req.user = session;
+    res.set("Cache-Control", "no-store");
+    next();
+  });
+
+  api.get("/me", async (req, res) =>
+    res.json({ username: req.user!.username, rol: req.user!.rol, ...d.version }),
+  );
+  // Ürün listesi içe aktarma kendi (büyük) sınırıyla, genel JSON sınırından önce bağlanır
+  api.use(urunlerRoutes(d));
+  api.use(express.json({ limit: "1mb" }));
+
+  // Kendi şifresini değiştirme: mevcut şifre doğrulanır, diğer cihazlardaki oturumlar kapanır,
+  // bu cihazda yeni oturum açılır (kullanıcı çıkış yapmak zorunda kalmaz).
+  api.post("/me/sifre", async (req, res) => {
+    const { mevcut, yeni } = (req.body ?? {}) as { mevcut?: unknown; yeni?: unknown };
+    const perr = validatePassword(yeni);
+    if (perr) {
+      res.status(400).json({ error: perr });
+      return;
+    }
+    if (typeof mevcut !== "string" || !(await d.auth.checkPassword(req.user!.userId, mevcut))) {
+      res.status(400).json({ error: "Mevcut şifre hatalı." });
+      return;
+    }
+    if (mevcut === yeni) {
+      res.status(400).json({ error: "Yeni şifre mevcut şifreyle aynı olamaz." });
+      return;
+    }
+    await d.auth.setPassword(req.user!.username, yeni as string);
+    const token = await d.auth.createSession(req.user!.userId);
+    res.cookie(COOKIE_NAME, token, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: req.secure,
+      path: "/",
+      maxAge: d.auth.absoluteMs,
+    });
+    await kaydet(d.pool, req, "sifre_degistir");
+    res.json({ ok: true });
+  });
+
+  // Ayarlar herkes okuyabilir; değiştirmek yöneticinin işi.
+  api.get("/ayarlar", async (_req, res) => {
+    res.json(await ayarlariOku(d.pool));
+  });
+  api.use(sayimlarRoutes(d));
+  api.use(yonetimRoutes(d));
+  api.use((_req, res) => res.status(404).json({ error: "Bulunamadı." }));
+
+  app.use("/api", api);
+
+  // Hata yakalayıcı
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    if (err?.type === "entity.too.large") {
+      res.status(413).json({ error: "İstek çok büyük." });
+      return;
+    }
+    if (err?.type === "entity.parse.failed") {
+      res.status(400).json({ error: "Geçersiz JSON." });
+      return;
+    }
+    console.error("Beklenmeyen hata:", err);
+    res.status(500).json({ error: "Sunucu hatası." });
+  });
+
+  return app;
+}

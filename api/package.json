@@ -1,0 +1,35 @@
+{
+  "name": "namlab-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Namlab API (kontrolsüz sayım / barkod okutma) — Express + TypeScript + PostgreSQL",
+  "main": "dist/index.js",
+  "license": "ISC",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "cli": "tsx src/cli.ts",
+    "test:db": "sh scripts/test-db.sh"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.23.0",
+    "zod": "^4.6.5",
+    "fflate": "^0.8.3",
+    "iconv-lite": "^0.7.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.4",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  }
+}

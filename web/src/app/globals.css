@@ -1,0 +1,754 @@
+@import "tailwindcss";
+
+/* Vurgu rengi (mor): namtag (kil), naman (gri-mavi), namrec (deniz yeşili) ile karışmasın diye. Değiştirmek için burayı düzenleyin. */
+@theme {
+  --color-cream-50: #f6f5f2;
+  --color-cream-100: #efece6;
+  --color-vurgu-400: #8b78d6;
+  --color-vurgu-500: #5b45b0;
+  --color-vurgu-600: #47358f;
+}
+
+@layer base {
+  body {
+    @apply m-0 bg-cream-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 min-h-screen;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+}
+
+@layer components {
+  header {
+    @apply px-6 pt-5 pb-3.5 border-b border-stone-200 dark:border-stone-700;
+  }
+  header h1 {
+    @apply m-0 mb-1 text-xl font-semibold;
+  }
+  header p {
+    @apply m-0 text-stone-500 dark:text-stone-400 text-sm;
+  }
+
+  .wrap {
+    @apply max-w-[1100px] mx-auto p-5;
+  }
+
+  .panel {
+    @apply bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 mb-[18px];
+  }
+  .panel h2 {
+    @apply m-0 mb-2.5 text-[15px] font-semibold flex items-center gap-2;
+  }
+
+  .badge {
+    @apply inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-vurgu-500 text-white text-xs font-semibold;
+  }
+
+
+  .status {
+    @apply mt-2.5 text-[12.5px] min-h-[18px] text-stone-500 dark:text-stone-400 whitespace-pre-line;
+  }
+  .status.ok {
+    @apply text-emerald-600 dark:text-emerald-400;
+  }
+  .status.err {
+    @apply text-red-600 dark:text-red-400;
+  }
+
+
+  .search-box {
+    @apply flex gap-2 mb-3;
+  }
+  .search-box input {
+    @apply flex-1 px-3 py-2.5 text-base md:text-sm rounded-lg border border-stone-200 dark:border-stone-700 bg-cream-50 dark:bg-stone-800 text-stone-800 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-vurgu-500 focus:ring-offset-1 dark:focus:ring-offset-stone-900;
+  }
+
+
+
+  .empty {
+    @apply text-stone-500 dark:text-stone-400 text-[13px] py-3.5 px-0.5;
+  }
+
+
+  .anabtn {
+    @apply w-full py-3 border-0 rounded-lg bg-vurgu-500 text-white text-[14.5px] font-bold cursor-pointer mt-1 transition-colors hover:bg-vurgu-600 disabled:bg-stone-200 disabled:text-stone-400 dark:disabled:bg-stone-700 dark:disabled:text-stone-500 disabled:cursor-default;
+  }
+  .clearbtn {
+    @apply w-full py-2 border border-stone-200 dark:border-stone-700 rounded-lg bg-transparent text-stone-500 dark:text-stone-400 text-xs cursor-pointer mt-1.5;
+  }
+}
+
+/* Yükleme ekranı iskeleti */
+@layer components {
+  .skel {
+    @apply rounded-md bg-stone-200 dark:bg-stone-800;
+    background-image: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.45) 50%, transparent 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: skel-sweep 1.4s ease-in-out infinite;
+  }
+  /* koyu temada parıltı daha sönük */
+  @media (prefers-color-scheme: dark) {
+    .skel {
+      background-image: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.06) 50%, transparent 100%);
+    }
+  }
+  /* Künye kartını andıran yer tutucu: kesikli çerçeve, ortada QR karesi */
+  .retry-btn {
+    @apply px-4 py-2 rounded-lg bg-vurgu-500 hover:bg-vurgu-600 text-white text-sm font-semibold border-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vurgu-500;
+  }
+}
+
+@keyframes skel-sweep {
+  from { background-position: 150% 0; }
+  to { background-position: -50% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skel { animation: none; }
+}
+
+/* Üst menü, pencereler, yönetim paneli */
+@layer components {
+  .ust-menu {
+    @apply flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-[12.5px];
+  }
+  .ust-menu a,
+  .ust-menu button {
+    @apply bg-transparent border-0 p-0 cursor-pointer underline text-inherit font-[inherit] text-[12.5px] hover:text-vurgu-600 dark:hover:text-vurgu-400;
+  }
+  .ust-kullanici {
+    @apply opacity-80 inline-flex items-center gap-1.5;
+  }
+  .rol-rozet {
+    @apply rounded-full px-1.5 py-px text-[10.5px] font-semibold border;
+  }
+  .rol-rozet.yonetici {
+    @apply text-vurgu-600 dark:text-vurgu-400 border-vurgu-400 bg-vurgu-500/10;
+  }
+  .rol-rozet.personel {
+    @apply text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-600;
+  }
+
+  .modal-arka {
+    @apply fixed inset-0 z-50 bg-black/55 flex items-start justify-center p-4 pt-[12vh];
+  }
+  .modal {
+    @apply w-full max-w-[400px] bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 shadow-2xl flex flex-col gap-3;
+  }
+  .modal-ust {
+    @apply flex items-center justify-between gap-2;
+  }
+  .modal-ust h2 {
+    @apply m-0 text-[15px] font-semibold;
+  }
+
+  .alan {
+    @apply flex flex-col gap-1 min-w-0 flex-1;
+  }
+  .alan.dar {
+    @apply flex-none min-w-[140px];
+  }
+  /* Telefonda form alanları alt alta, tam genişlik */
+  @media (max-width: 639px) {
+    .form-satir > .alan,
+    .form-satir > button,
+    .filtre-satir > .alan {
+      @apply basis-full flex-none w-full;
+    }
+  }
+  .alan > span {
+    @apply text-[12px] text-stone-500 dark:text-stone-400;
+  }
+  .alan input,
+  .alan select,
+  .tablo select,
+  .ayar input {
+    @apply px-3 py-2 text-base md:text-[13px] rounded-lg border border-stone-200 dark:border-stone-700 bg-cream-50 dark:bg-stone-800 text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-vurgu-500;
+  }
+  .form-satir,
+  .filtre-satir {
+    @apply flex flex-wrap items-end gap-2.5 mb-2;
+  }
+  .yardim {
+    @apply m-0 mb-2.5 text-[12.5px] text-stone-500 dark:text-stone-400;
+  }
+
+  .sekmeler {
+    @apply flex gap-1 mb-4 border-b border-stone-200 dark:border-stone-700 overflow-x-auto;
+  }
+  .sekmeler a {
+    @apply px-2.5 sm:px-3.5 py-2 text-[13.5px] font-semibold no-underline text-stone-500 dark:text-stone-400 border-b-2 border-transparent -mb-px whitespace-nowrap hover:text-stone-800 dark:hover:text-stone-100;
+  }
+  .sekmeler a.aktif {
+    @apply text-vurgu-600 dark:text-vurgu-400 border-vurgu-500;
+  }
+
+  .tablo-kap {
+    @apply overflow-x-auto -mx-1 px-1;
+  }
+  .tablo {
+    @apply w-full border-collapse text-[13px];
+  }
+  .tablo th {
+    @apply text-left font-semibold text-[12px] text-stone-500 dark:text-stone-400 px-2 py-1.5 border-b border-stone-200 dark:border-stone-700 whitespace-nowrap;
+  }
+  .tablo td {
+    @apply px-2 py-2 border-b border-stone-100 dark:border-stone-800 align-middle;
+  }
+  .tablo .sayi {
+    @apply text-right tabular-nums;
+  }
+  .tablo tr.pasif td {
+    @apply text-stone-400 dark:text-stone-500;
+  }
+  .tablo tr.onemli td.islem {
+    @apply font-semibold text-red-700 dark:text-red-400;
+  }
+  .tablo .ayrinti {
+    @apply text-stone-600 dark:text-stone-300 break-words min-w-[180px];
+  }
+  .tablo .ip {
+    @apply text-[11.5px] text-stone-400 whitespace-nowrap;
+  }
+  .tablo select {
+    @apply py-1;
+  }
+  .ben {
+    @apply text-[11.5px] text-stone-500;
+  }
+  .durum {
+    @apply inline-flex rounded-full px-2 py-px text-[11px] font-semibold border;
+  }
+  .durum.aktif {
+    @apply text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 bg-emerald-500/10;
+  }
+  .durum.pasif {
+    @apply text-stone-500 border-stone-300 dark:border-stone-600;
+  }
+  .satir-aksiyon {
+    @apply flex flex-wrap justify-end gap-1.5;
+  }
+  .satir-aksiyon button {
+    @apply bg-transparent border border-stone-300 dark:border-stone-600 rounded-md px-2.5 py-1 text-[12px] font-semibold cursor-pointer text-inherit whitespace-nowrap hover:bg-stone-500/10 disabled:opacity-35 disabled:cursor-default;
+  }
+  .satir-aksiyon .tehlike {
+    @apply text-red-600 dark:text-red-400 border-red-300 dark:border-red-800 hover:bg-red-600/10;
+  }
+  .metin-btn {
+    @apply bg-transparent border-0 underline text-[12.5px] text-stone-500 cursor-pointer p-0;
+  }
+  .tehlike-btn {
+    @apply px-3.5 py-2 rounded-lg border border-red-300 dark:border-red-800 bg-red-600/5 text-red-700 dark:text-red-400 text-[13px] font-semibold cursor-pointer hover:bg-red-600/10 disabled:opacity-50 disabled:cursor-default;
+  }
+
+  .ayar-liste {
+    @apply flex flex-col mb-3;
+  }
+  .ayar {
+    @apply flex items-center justify-between gap-4 py-3 border-b border-stone-100 dark:border-stone-800 last:border-b-0;
+  }
+  .ayar-metin b {
+    @apply block text-[13.5px] font-semibold;
+  }
+  .ayar-metin small {
+    @apply block text-[12px] text-stone-500 dark:text-stone-400 mt-0.5;
+  }
+  .ayar input {
+    @apply w-24 flex-shrink-0 text-right tabular-nums;
+  }
+
+  /* İstatistik */
+  .kutucuklar {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-3 mb-[18px];
+  }
+  .kutu {
+    @apply bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 flex flex-col gap-1;
+  }
+  .kutu .etiket {
+    @apply text-[12px] text-stone-500 dark:text-stone-400;
+  }
+  .kutu .deger {
+    @apply text-[26px] font-semibold tabular-nums leading-tight;
+  }
+  .kutu .alt {
+    @apply text-[12px] text-stone-500 dark:text-stone-400;
+  }
+
+  .grafik {
+    @apply flex gap-2 h-[200px];
+  }
+  .eksen-y {
+    @apply flex flex-col justify-between items-end text-[11px] text-stone-400 tabular-nums -my-[7px] min-w-[28px];
+  }
+  .cizim {
+    @apply relative flex-1 min-w-0;
+  }
+  .izgara {
+    @apply absolute inset-0 flex flex-col justify-between pointer-events-none;
+  }
+  .izgara span {
+    @apply block border-t border-stone-100 dark:border-stone-800;
+  }
+  .izgara span:last-child {
+    @apply border-stone-300 dark:border-stone-600;
+  }
+  .sutunlar {
+    @apply absolute inset-0 flex items-end gap-[2px];
+  }
+  .sutun {
+    @apply flex-1 h-full flex items-end bg-transparent border-0 p-0 cursor-default focus-visible:outline-2 focus-visible:outline-vurgu-500 rounded-sm;
+  }
+  .sutun .dolgu {
+    @apply block w-full bg-vurgu-500 rounded-t-[4px] min-h-0 transition-colors;
+  }
+  .sutun.secili .dolgu {
+    @apply bg-vurgu-600 dark:bg-vurgu-400;
+  }
+  .sutun.secili {
+    @apply bg-stone-500/10;
+  }
+  .ipucu {
+    @apply absolute top-1 -translate-x-1/2 z-10 pointer-events-none bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg shadow-lg px-2.5 py-1.5 text-[12px] flex flex-col whitespace-nowrap;
+  }
+  .ipucu b {
+    @apply font-semibold;
+  }
+  .ipucu span {
+    @apply text-stone-600 dark:text-stone-300 tabular-nums;
+  }
+  .eksen-x {
+    @apply flex gap-[2px] ml-[36px] mt-1 text-[10.5px] text-stone-400;
+  }
+  .eksen-x span {
+    @apply flex-1 whitespace-nowrap overflow-visible;
+  }
+  .tablo-gorunum {
+    @apply mt-3 text-[12.5px];
+  }
+  .tablo-gorunum summary {
+    @apply cursor-pointer text-stone-500 dark:text-stone-400;
+  }
+
+  .yatay-cubuklar {
+    @apply list-none m-0 p-0 flex flex-col gap-2;
+  }
+  .yatay-cubuklar li {
+    @apply grid grid-cols-[minmax(90px,38%)_1fr_auto] items-center gap-2 text-[12.5px];
+  }
+  .yatay-cubuklar .ad {
+    @apply truncate;
+  }
+  .yatay-cubuklar .cubuk-kap {
+    @apply block h-3;
+  }
+  .yatay-cubuklar .cubuk {
+    @apply block h-full bg-vurgu-500 rounded-r-[4px] min-w-[2px];
+  }
+  .yatay-cubuklar .deger {
+    @apply tabular-nums text-stone-600 dark:text-stone-300 min-w-[28px] text-right;
+  }
+}
+
+/* Telefonda tablolar kart görünümü: her satır bir kart, hücreler "etiket: değer" */
+@media (max-width: 767px) {
+  @layer components {
+    .tablo.kartli thead {
+      @apply hidden;
+    }
+    .tablo.kartli,
+    .tablo.kartli tbody,
+    .tablo.kartli tr,
+    .tablo.kartli td {
+      @apply block w-full;
+    }
+    .tablo.kartli tr {
+      @apply border border-stone-200 dark:border-stone-700 rounded-[9px] px-3 py-2 mb-2;
+    }
+    .tablo.kartli td {
+      @apply border-0 px-0 py-1 flex items-center justify-between gap-3 text-right min-w-0 whitespace-normal;
+    }
+    .tablo.kartli td[data-etiket]::before {
+      content: attr(data-etiket);
+      @apply text-[12px] text-stone-500 dark:text-stone-400 text-left flex-shrink-0;
+    }
+    .tablo.kartli td.kart-baslik {
+      @apply justify-start text-[14px];
+    }
+    .tablo.kartli td.kart-aksiyon .satir-aksiyon {
+      @apply justify-start pt-1;
+    }
+    .tablo.kartli td.ayrinti {
+      @apply min-w-0;
+    }
+    .tablo.kartli td.ayrinti:empty {
+      @apply hidden;
+    }
+  }
+}
+
+/* namlab bileşenleri */
+@layer components {
+  .kopyala {
+    @apply inline-flex items-center justify-center w-7 h-7 rounded-md border-0 bg-transparent cursor-pointer text-stone-400 hover:text-vurgu-600 hover:bg-vurgu-500/10 dark:hover:text-vurgu-400 text-[13px];
+  }
+  .kopyala.oldu {
+    @apply text-emerald-600 dark:text-emerald-400;
+  }
+  .goster {
+    @apply bg-transparent border-0 p-0 cursor-pointer text-[11.5px] underline text-stone-500 dark:text-stone-400;
+  }
+
+  .uyari {
+    @apply inline-flex items-center rounded-full px-2 py-px text-[11px] font-semibold leading-[18px] border;
+  }
+  .uyari.kirmizi {
+    @apply text-red-700 dark:text-red-300 border-red-300 dark:border-red-800 bg-red-500/10;
+  }
+  .uyari.sari {
+    @apply text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800 bg-amber-500/10;
+  }
+  .uyari.gri {
+    @apply text-stone-600 dark:text-stone-300 border-stone-300 dark:border-stone-600;
+  }
+
+  .modal.genis {
+    @apply max-w-[480px];
+  }
+  .modal textarea {
+    @apply px-3 py-2 text-base md:text-[13px] rounded-lg border border-stone-200 dark:border-stone-700 bg-cream-50 dark:bg-stone-800 text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-vurgu-500 resize-y min-h-[60px] font-[inherit];
+  }
+  .alan .ipucu-metin {
+    @apply text-[11.5px] text-stone-500 dark:text-stone-400;
+  }
+  .alan .ipucu-metin.hata {
+    @apply text-red-600 dark:text-red-400;
+  }
+  .alan .ipucu-metin.uyar {
+    @apply text-amber-700 dark:text-amber-400;
+  }
+  .onay-satir {
+    @apply flex items-center gap-2 text-[13px] cursor-pointer;
+  }
+  .modal-alt {
+    @apply flex items-center justify-between gap-2;
+  }
+
+  .bildirim-kutu {
+    @apply fixed left-1/2 -translate-x-1/2 bottom-5 z-[60] rounded-lg bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 px-4 py-2 text-[13px] shadow-lg pointer-events-none;
+  }
+
+  /* Excel içe aktarma önizlemesi */
+  .onizleme {
+    @apply flex flex-col gap-2 mt-3;
+  }
+  .onizleme details {
+    @apply border border-stone-200 dark:border-stone-700 rounded-lg px-3 py-2 text-[13px];
+  }
+  .onizleme details.hata {
+    @apply border-red-300 dark:border-red-800 bg-red-500/5;
+  }
+  .onizleme details.uyar {
+    @apply border-amber-300 dark:border-amber-800 bg-amber-500/5;
+  }
+  .onizleme summary {
+    @apply cursor-pointer font-semibold;
+  }
+  .onizleme ul {
+    @apply m-0 mt-1.5 pl-5 flex flex-col gap-0.5 max-h-[260px] overflow-y-auto text-[12.5px];
+  }
+  .onay-kutu {
+    @apply flex flex-col gap-2 p-3 rounded-lg border;
+  }
+  .onay-kutu.ok {
+    @apply border-emerald-300 dark:border-emerald-800 bg-emerald-500/5;
+  }
+  .onay-kutu.hata {
+    @apply border-red-300 dark:border-red-800 bg-red-500/5;
+  }
+  .dosya-sec {
+    @apply block w-full text-[13px] file:mr-3 file:px-3.5 file:py-2 file:rounded-lg file:border-0 file:bg-vurgu-500 file:text-white file:font-semibold file:cursor-pointer;
+  }
+  .dl-btn {
+    @apply inline-block px-3.5 py-2 rounded-lg border border-vurgu-500 bg-vurgu-500/10 text-vurgu-600 dark:text-vurgu-400 text-[13px] font-semibold no-underline hover:bg-vurgu-500/20;
+  }
+  .anahtar {
+    @apply relative inline-flex w-11 h-6 flex-shrink-0 rounded-full bg-stone-300 dark:bg-stone-600 cursor-pointer transition-colors border-0 p-0;
+  }
+  .anahtar[aria-checked="true"] {
+    @apply bg-vurgu-500;
+  }
+  .anahtar::after {
+    content: "";
+    @apply absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform;
+  }
+  .anahtar[aria-checked="true"]::after {
+    @apply translate-x-5;
+  }
+}
+
+@layer components {
+  .viewer-kapat {
+    @apply bg-transparent border-0 text-lg leading-none px-2 py-1 cursor-pointer text-inherit rounded-md hover:bg-stone-500/10 focus-visible:outline-2 focus-visible:outline-vurgu-500;
+  }
+  /* Uzun formlar küçük ekranda kaydırılabilsin */
+  .modal-arka {
+    @apply overflow-y-auto pt-[6vh] sm:pt-[10vh];
+  }
+}
+
+@layer components {
+  .savebtn {
+    @apply flex-shrink-0 px-3.5 py-2 rounded-lg border border-vurgu-500 bg-vurgu-500/10 text-vurgu-600 dark:text-vurgu-400 text-[13px] font-semibold cursor-pointer hover:bg-vurgu-500/20 disabled:cursor-default disabled:border-stone-200 dark:disabled:border-stone-700 disabled:bg-transparent disabled:text-stone-400 dark:disabled:text-stone-500;
+  }
+}
+
+/* Sayım listesi, okutma ekranı */
+@layer components {
+  .arac-cubugu {
+    @apply flex flex-wrap items-center gap-2 mb-3;
+  }
+  .arama {
+    @apply flex-1 min-w-[200px] px-3.5 py-3 text-base rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-vurgu-500;
+  }
+  .yeni-btn {
+    @apply flex-shrink-0 px-4 py-3 rounded-xl border-0 bg-vurgu-500 hover:bg-vurgu-600 text-white text-[14px] font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-default;
+  }
+  .filtreler {
+    @apply flex flex-wrap items-center gap-1.5 mb-3 text-[12.5px] text-stone-500 dark:text-stone-400;
+  }
+  .filtre {
+    @apply rounded-full border border-stone-200 dark:border-stone-700 bg-transparent px-3 py-1 text-[12.5px] cursor-pointer text-inherit hover:bg-stone-500/10;
+  }
+  .filtre.secili {
+    @apply border-vurgu-500 bg-vurgu-500/10 text-vurgu-600 dark:text-vurgu-400 font-semibold;
+  }
+  .kucuk-btn {
+    @apply flex-shrink-0 bg-transparent border border-stone-300 dark:border-stone-600 rounded-md px-2.5 py-1 text-[12px] font-semibold cursor-pointer text-inherit no-underline hover:bg-stone-500/10 disabled:opacity-40 disabled:cursor-default;
+  }
+
+  .sayim-izgara {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-3;
+  }
+  .sayim-kart {
+    @apply block bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 no-underline text-inherit hover:border-vurgu-400 transition-colors;
+  }
+  .sayim-kart h3 {
+    @apply m-0 text-[15.5px] font-semibold flex items-center gap-2 flex-wrap;
+  }
+  .sayim-kart .sayilar {
+    @apply mt-2 flex gap-4 text-[13px] tabular-nums;
+  }
+  .sayim-kart .sayilar b {
+    @apply text-[18px] font-semibold block leading-tight;
+  }
+  .sayim-kart .alt {
+    @apply mt-1.5 text-[12px] text-stone-500 dark:text-stone-400;
+  }
+  .rozet {
+    @apply inline-flex items-center rounded-full px-2 py-px text-[11px] font-semibold leading-[18px] border;
+  }
+  .rozet.acik {
+    @apply text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 bg-emerald-500/10;
+  }
+  .rozet.kapali {
+    @apply text-stone-500 border-stone-300 dark:border-stone-600;
+  }
+  .rozet.sari {
+    @apply text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800 bg-amber-500/10;
+  }
+  .rozet.kirmizi {
+    @apply text-red-700 dark:text-red-300 border-red-300 dark:border-red-800 bg-red-500/10;
+  }
+
+  /* Okutma ekranı: telefonda tek elle kullanım */
+  .sayim-ust {
+    @apply sticky top-0 z-20 flex items-center gap-2 px-3 py-2 bg-cream-50/95 dark:bg-stone-950/95 backdrop-blur border-b border-stone-200 dark:border-stone-700;
+    padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+  }
+  .sayim-ust .geri {
+    @apply text-[20px] no-underline text-inherit px-1.5;
+  }
+  .sayim-ust .baslik {
+    @apply flex-1 min-w-0;
+  }
+  .sayim-ust .baslik b {
+    @apply block truncate text-[15px];
+  }
+  .sayim-ust .baslik span {
+    @apply block text-[11.5px] text-stone-500 dark:text-stone-400 truncate;
+  }
+  .sekme-cubugu {
+    @apply grid grid-cols-2 gap-1 p-1 mx-3 mt-3 rounded-xl bg-stone-200/70 dark:bg-stone-800;
+  }
+  .sekme-cubugu button {
+    @apply border-0 rounded-lg py-2 text-[14px] font-semibold cursor-pointer bg-transparent text-stone-600 dark:text-stone-300;
+  }
+  .sekme-cubugu button[aria-selected="true"] {
+    @apply bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-sm;
+  }
+  .okut-kap {
+    @apply max-w-[640px] mx-auto p-3 flex flex-col gap-3;
+  }
+  .kamera {
+    @apply relative w-full overflow-hidden rounded-xl bg-black aspect-[4/3] max-h-[45vh];
+  }
+  .kamera video {
+    @apply absolute inset-0 w-full h-full object-cover;
+  }
+  .kamera .nisan {
+    @apply absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 h-[38%] border-2 border-white/80 rounded-lg pointer-events-none;
+    box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.25);
+  }
+  .kamera .nisan::after {
+    content: "";
+    @apply absolute left-2 right-2 top-1/2 h-0.5 bg-red-500/80;
+  }
+  .kamera.okudu .nisan {
+    @apply border-emerald-400;
+  }
+  .kamera-araclar {
+    @apply absolute top-2 right-2 flex gap-2 z-10;
+  }
+  .kamera-araclar button {
+    @apply w-10 h-10 rounded-full border-0 bg-black/55 text-white text-[18px] cursor-pointer backdrop-blur;
+  }
+  .kamera-araclar button[aria-pressed="true"] {
+    @apply bg-amber-400 text-black;
+  }
+  .kamera-ac {
+    @apply w-full py-5 rounded-xl border-2 border-dashed border-vurgu-400 bg-vurgu-500/5 text-vurgu-600 dark:text-vurgu-400 text-[16px] font-semibold cursor-pointer;
+  }
+  .giris-satir {
+    @apply flex gap-2;
+  }
+  .giris-satir input {
+    @apply flex-1 min-w-0 px-3.5 py-3 text-[17px] rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 tabular-nums tracking-wide focus:outline-none focus:ring-2 focus:ring-vurgu-500;
+  }
+  .miktar-kutu {
+    @apply flex items-stretch rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 overflow-hidden flex-shrink-0;
+  }
+  .miktar-kutu button {
+    @apply w-11 border-0 bg-transparent text-[22px] cursor-pointer text-inherit hover:bg-stone-500/10;
+  }
+  .miktar-kutu input {
+    @apply w-16 text-center border-0 border-x border-stone-200 dark:border-stone-700 rounded-none px-1 text-[17px] font-semibold focus:ring-0 bg-transparent;
+  }
+  .ayar-satiri {
+    @apply flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-stone-600 dark:text-stone-300;
+  }
+  .ayar-satiri label {
+    @apply inline-flex items-center gap-1.5 cursor-pointer;
+  }
+
+  .son-okutma {
+    @apply rounded-xl border-2 px-4 py-3 bg-white dark:bg-stone-900 flex flex-col gap-1;
+  }
+  .son-okutma.tamam {
+    @apply border-emerald-400;
+  }
+  .son-okutma.yok {
+    @apply border-amber-400;
+  }
+  .son-okutma.hata {
+    @apply border-red-400;
+  }
+  .son-okutma .barkod {
+    @apply text-[22px] font-bold tabular-nums tracking-wide break-all leading-tight;
+  }
+  .son-okutma .ad {
+    @apply text-[15px] font-semibold;
+  }
+  .son-okutma .alt {
+    @apply flex flex-wrap items-center justify-between gap-2 text-[13px] text-stone-500 dark:text-stone-400;
+  }
+  .son-okutma .toplam b {
+    @apply text-stone-900 dark:text-stone-100 text-[16px];
+  }
+  .bekleyen-uyari {
+    @apply rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-500/10 text-amber-800 dark:text-amber-300 px-3 py-2 text-[13px] flex items-center justify-between gap-2;
+  }
+  .gecmis {
+    @apply list-none m-0 p-0 flex flex-col;
+  }
+  .gecmis li {
+    @apply flex items-center justify-between gap-2 py-2 border-b border-stone-100 dark:border-stone-800 text-[13.5px];
+  }
+  .gecmis .bk {
+    @apply tabular-nums font-semibold;
+  }
+  .gecmis .ad {
+    @apply block text-[12px] text-stone-500 dark:text-stone-400 truncate max-w-[60vw];
+  }
+  .gecmis .sag {
+    @apply flex items-center gap-2 flex-shrink-0 tabular-nums;
+  }
+
+  /* Liste */
+  .liste-tablo {
+    @apply w-full border-collapse text-[13.5px];
+  }
+  .liste-tablo td {
+    @apply py-2.5 px-1.5 border-b border-stone-100 dark:border-stone-800 align-top;
+  }
+  .liste-tablo tr.satir {
+    @apply cursor-pointer hover:bg-stone-500/5;
+  }
+  .liste-tablo .miktar {
+    @apply text-right font-semibold tabular-nums whitespace-nowrap text-[15px];
+  }
+  .liste-tablo .bk {
+    @apply tabular-nums font-semibold break-all;
+  }
+  .liste-tablo .ad {
+    @apply block text-[12.5px] text-stone-600 dark:text-stone-300;
+  }
+  .detay {
+    @apply bg-stone-500/5;
+  }
+  .detay ul {
+    @apply list-none m-0 p-0 flex flex-col gap-1;
+  }
+  .detay li {
+    @apply flex items-center justify-between gap-2 text-[12.5px];
+  }
+  .ozet-kutular {
+    @apply grid grid-cols-3 gap-2;
+  }
+  .ozet-kutular div {
+    @apply rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 px-3 py-2;
+  }
+  .ozet-kutular span {
+    @apply block text-[11.5px] text-stone-500 dark:text-stone-400;
+  }
+  .ozet-kutular b {
+    @apply block text-[20px] tabular-nums leading-tight;
+  }
+  .indir-satir {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .hizli-miktar {
+    @apply grid grid-cols-4 gap-2;
+  }
+  .hizli-miktar button {
+    @apply py-3 rounded-lg border border-stone-200 dark:border-stone-700 bg-transparent text-[17px] font-semibold cursor-pointer text-inherit hover:bg-vurgu-500/10;
+  }
+  .buyuk-giris {
+    @apply w-full px-3.5 py-3 text-[26px] text-center font-bold tabular-nums rounded-xl border border-stone-200 dark:border-stone-700 bg-cream-50 dark:bg-stone-800 text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-vurgu-500;
+  }
+  .onizleme-txt {
+    @apply m-0 p-3 rounded-lg bg-stone-900 text-stone-100 text-[12.5px] leading-5 overflow-x-auto whitespace-pre font-mono;
+  }
+  .onizleme-txt .gorunmez {
+    @apply text-stone-500;
+  }
+  .ayar-form {
+    @apply flex flex-col gap-3;
+  }
+  .ayar-form .alan input,
+  .ayar-form .alan select {
+    @apply font-mono;
+  }
+  .kod {
+    @apply font-mono text-[12px] bg-stone-500/10 rounded px-1;
+  }
+}
